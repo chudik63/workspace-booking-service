@@ -1,7 +1,7 @@
 lint:
   use:
     - DEFAULT
-  enum_zero_value_suffix: ""
+  enum_zero_value_suffix: "_UNSPECIFIED"
   service_suffix: ""
   ignore:
     - google/api/annotations.proto
@@ -35,7 +35,7 @@ generate:
       out: pkg
       opts:
         allow_merge: true
-        merge_file_name: ../swagger/api
+        merge_file_name: ../swagger/docs
         generate_unbound_methods: true
         json_names_for_fields: false
         allow_delete_body: true

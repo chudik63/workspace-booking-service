@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package workspace_booking.api.workspace.v1;
+
+import "google/protobuf/timestamp.proto";
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/golangmonster/workspace-booking-service/pkg/api/workspace/v1";
+
+service WorkspaceService {
+  rpc GetWorkspaceById(GetWorkspaceByIdRequest) returns (GetWorkspaceByIdResponse) {
+    option (google.api.http) = {
+      get: "/api/workspace/v1/workspaces/{id}"
+    };
+  }
+
+  rpc CreateWorkspace(CreateWorkspaceRequest) returns (CreateWorkspaceResponse) {
+    option (google.api.http) = {
+      post: "/api/workspace/v1/workspaces"
+      body: "*"
+    };
+  }
+
+  rpc UpdateWorkspace(UpdateWorkspaceRequest) returns (UpdateWorkspaceResponse) {
+    option (google.api.http) = {
+      put: "/api/workspace/v1/workspaces/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteWorkspaceById(DeleteWorkspaceByIdRequest) returns (DeleteWorkspaceByIdResponse) {
+    option (google.api.http) = {
+      delete: "/api/workspace/v1/workspaces/{id}"
+    };
+  }
+
+  rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
+    option (google.api.http) = {
+      post: "/api/workspace/v1/list-workspaces"
+      body: "*"
+    };
+  }
+}
+
+enum WorkspaceType {
+  WORKSPACE_TYPE_UNSPECIFIED   = 0;
+  WORKSPACE_TYPE_DESK         = 1; // Рабочий стол
+  WORKSPACE_TYPE_MEETING_ROOM = 2; // Переговорка
+  WORKSPACE_TYPE_PHONE_BOOTH  = 3; // Телефона будка
+}
+
+enum WorkspaceStatus {
+  WORKSPACE_STATUS_UNSPECIFIED = 0;
+  WORKSPACE_STATUS_AVAILABLE = 1; // Свободна
+  WORKSPACE_STATUS_BOOKED = 2; // Забронирована
+  WORKSPACE_STATUS_MAINTENANCE = 3; // Тех. работы
+}
+
+message LatLon {
+  double lat = 1 [(buf.validate.field).double = {
+    gte: -90,
+    lte: 90
+  }]; // широта
+  double lon = 2 [(buf.validate.field).double = {
+    gte: -180,
+    lte: 180
+  }]; // долгота
+}
+
+message GetWorkspaceByIdRequest {
+  int64 id = 1 [(buf.validate.field).int64.gt = 0];
+}
+
+message GetWorkspaceByIdResponse {
+  Workspace workspace = 1;
+
+  message Workspace {
+    int64 id = 1;
+    string name = 2;
+    LatLon coordinates = 3;
+    string full_address = 4;
+    WorkspaceType type = 5;
+    WorkspaceStatus status = 6;
+    uint32 capacity = 7;
+    google.protobuf.Timestamp created_at = 8;
+    google.protobuf.Timestamp updated_at = 9;
+  }
+}
+
+message CreateWorkspaceRequest {
+  string name = 1 [(buf.validate.field).string = {
+    max_len: 100,
+    min_len: 1
+  }];
+  LatLon coordinates = 2 [(buf.validate.field).required = true];
+  string full_address = 3 [(buf.validate.field).string = {
+    max_len: 100,
+    min_len: 1
+  }];
+  WorkspaceType type = 4 [(buf.validate.field).enum.defined_only = true];
+  uint32 capacity = 5 [(buf.validate.field).uint32.gt = 0];
+}
+
+message CreateWorkspaceResponse {
+  int64 workspace_id = 1;
+}
+
+message UpdateWorkspaceRequest {
+  int64 id = 1 [(buf.validate.field).int64.gt = 0];
+  string name = 2 [(buf.validate.field).string = {
+    max_len: 100,
+    min_len: 1
+  }];
+  LatLon coordinates = 3 [(buf.validate.field).required = true];
+  string full_address = 4 [(buf.validate.field).string = {
+    max_len: 100,
+    min_len: 1
+  }];
+  WorkspaceType type = 5 [(buf.validate.field).enum = {
+    defined_only: true
+  }];
+  uint32 capacity = 6 [(buf.validate.field).uint32.gt = 0];
+  WorkspaceStatus status = 7 [(buf.validate.field).enum.defined_only = true];
+}
+
+message UpdateWorkspaceResponse {}
+
+message DeleteWorkspaceByIdRequest {
+  int64 id = 1 [(buf.validate.field).int64.gt = 0];
+}
+
+message DeleteWorkspaceByIdResponse {}
+
+message ListWorkspacesRequest {
+  Page page = 1 [(buf.validate.field).required = true];
+  optional Filter filter = 2;
+
+  message Filter {
+    repeated WorkspaceType types = 2 [(buf.validate.field).repeated.items.enum = {
+      defined_only: true
+    }];
+    repeated WorkspaceStatus statuses = 3 [(buf.validate.field).repeated.items.enum = {
+      defined_only: true
+    }];
+    optional uint32 capacity_gte = 4;
+    optional string full_address = 5;
+  }
+
+  message Page {
+    uint64 limit = 1 [(buf.validate.field).uint64.gt = 0, (buf.validate.field).uint64.lt = 1000];
+    uint64 offset = 2 [(buf.validate.field).uint64.gte = 0];
+  }
+}
+
+message ListWorkspacesResponse {
+  repeated Workspace workspaces = 1;
+  uint32 total_count = 2;
+
+  message Workspace {
+    int64 id = 1;
+    string name = 2;
+    LatLon coordinates = 3;
+    string full_address = 4;
+    WorkspaceType type = 5;
+    uint32 capacity = 6;
+    google.protobuf.Timestamp created_at = 7;
+    google.protobuf.Timestamp updated_at = 8;
+  }
+}

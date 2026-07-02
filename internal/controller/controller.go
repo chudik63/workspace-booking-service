@@ -112,6 +112,7 @@ func (c *controller) ServeHTTP(ctx context.Context) {
 	}
 
 	httpMux := http.NewServeMux()
+
 	httpMux.Handle("/", runtimeMux)
 	prefix := "/docs/"
 

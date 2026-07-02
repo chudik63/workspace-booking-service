@@ -8,13 +8,16 @@ import (
 	"time"
 
 	"github.com/golangmonster/workspace-booking-service/internal/app/user"
+	"github.com/golangmonster/workspace-booking-service/internal/app/workspace"
 	"github.com/golangmonster/workspace-booking-service/internal/controller"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/golangmonster/pgxtransactor"
 	"github.com/golangmonster/workspace-booking-service/internal/config"
 	userRepository "github.com/golangmonster/workspace-booking-service/internal/repository/user"
+	workspaceRepository "github.com/golangmonster/workspace-booking-service/internal/repository/workspace"
 	userService "github.com/golangmonster/workspace-booking-service/internal/service/user"
+	workspaceService "github.com/golangmonster/workspace-booking-service/internal/service/workspace"
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -45,10 +48,12 @@ func main() {
 	pgxTx := pgxtransactor.New(pool)
 
 	userRepo := userRepository.New(pgxTx)
+	workspaceRepo := workspaceRepository.New(pgxTx)
 
 	userSrv := userService.New(userRepo)
+	workspaceSrv := workspaceService.New(workspaceRepo)
 
-	ctrl := controller.New(&cfg, user.New(userSrv))
+	ctrl := controller.New(&cfg, user.New(userSrv), workspace.New(workspaceSrv))
 
 	ctrl.Run(ctx)
 

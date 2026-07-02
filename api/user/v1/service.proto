@@ -6,7 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 import "buf/validate/validate.proto";
 
-option go_package = "github.com/chudik63/workspace-booking-service/pkg/api/user/v1";
+option go_package = "github.com/golangmonster/workspace-booking-service/pkg/api/user/v1";
 
 service UserService {
   rpc GetUserById(GetUserByIdRequest) returns (GetUserByIdResponse) {
